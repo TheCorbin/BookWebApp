@@ -1,0 +1,32 @@
+<!-- 
+    Document   : index.html
+    Created on : Sep 21, 2015, 9:36:05 PM
+    Author     : jlombardo
+    Purpose    : home page and administrative menu
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Book Demo App :: JDBC with SOA</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <h2> Welcome to the Author Database!</h2>
+        
+        <p>Enter your name to be logged into the Author Database or use as a guest(Read Only)</p>
+        
+        <form id="form1" name="form1" Method="POST" action="AuthorController?action=list">
+                    <p>UserName:</p>
+                    <input type="text" name="userName" value="guest"/>
+                    <input class="btn btn-primary" type="submit" name="submit" value="submit"/>
+            <br>
+        </form>
+        <br>
+        <form id="form2" name="form1" Method="POST" action="AuthorController?action=list">
+            <input class="btn btn-primary" type="submit" name="userName" value="guest"/>
+        </form>   
+        
+        
+<!--        <a href="AuthorController?action=list"><h1>Click here to manage Author Database</h1></a>  -->
+    </body>
+</html>
