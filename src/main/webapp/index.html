@@ -15,6 +15,8 @@
         
         <p>Enter your name to be logged into the Author Database or use as a guest(Read Only)</p>
         
+        <a href="BookController?action=list">View all Books</a>
+        
         <form id="form1" name="form1" Method="POST" action="AuthorController?action=list">
                     <p>UserName:</p>
                     <input type="text" name="userName" value="guest"/>
@@ -24,7 +26,10 @@
         <br>
         <form id="form2" name="form1" Method="POST" action="AuthorController?action=list">
             <input class="btn btn-primary" type="submit" name="userName" value="guest"/>
-        </form>   
+        </form>  
+        
+        
+        
         
         
 <!--        <a href="AuthorController?action=list"><h1>Click here to manage Author Database</h1></a>  -->

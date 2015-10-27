@@ -1,7 +1,7 @@
 <%-- 
     Document   : listAuthors
     Created on : Sep 21, 2015, 9:36:05 PM
-    Author     : jlombardo
+    Author     : RCorbin
     Purpose    : display list of author records and (in the future) provide
                  a way to add/edit/delete records
 --%>
@@ -43,25 +43,21 @@
                     <tr style="background-color: #ccffff;">
                 </c:otherwise>
             </c:choose>
-            <td align="left">${a.authorID}</td>
+            <td align="left">${a.authorId}</td>
             <td align="left">${a.authorName}</td>
             <td align="right">
                 <fmt:formatDate pattern="M/d/yyyy" value="${a.dateAdded}"></fmt:formatDate>
             </td>
             <td>
-                <form id="formDelete" method="POST" action="AuthorController?action=delete&Id=${a.authorID}">
+                <form id="formDelete" method="POST" action="AuthorController?action=delete&Id=${a.authorId}">
                     <input class="btn btn-primary" type="submit" name="delete" value="Delete" ${guestUserFeatures}/> 
                 </form>
             </td>
              <td>
-                <form id="formUpdate" method="POST" action="AuthorController?action=update&Id=${a.authorID}">
-                <input class="btn btn-primary" type="submit" name="update" value="Update" ${guestUserFeatures}/> 
+                <form id="formUpdate" method="POST" action="AuthorController?action=update&Id=${a.authorId}">
+                <input class="btn btn-primary" type="submit" name="update" value="update" ${guestUserFeatures}/> 
                 </form>
             </td>
-            
-            
-            
-            
         </tr>
         </c:forEach>
         </table>

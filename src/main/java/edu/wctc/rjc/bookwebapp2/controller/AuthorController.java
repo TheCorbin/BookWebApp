@@ -1,19 +1,19 @@
 package edu.wctc.rjc.bookwebapp2.controller;
 
 
-import edu.wctc.rjc.bookwebapp2.model.Author;
-import edu.wctc.rjc.bookwebapp2.model.AuthorDAO;
-import edu.wctc.rjc.bookwebapp2.model.BookService;
-import edu.wctc.rjc.bookwebapp2.model.DbStrategy;
-import edu.wctc.rjc.bookwebapp2.model.InterAuthorDAO;
-import edu.wctc.rjc.bookwebapp2.model.MySqlDbStrategy;
+import edu.wctc.rjc.bookwebapp2.entity.Author;
+import edu.wctc.rjc.bookwebapp2.service.AbstractFacade;
+
+
 import java.io.IOException;
 import static java.lang.System.console;
 import java.lang.reflect.Constructor;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import javax.inject.Inject;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.servlet.RequestDispatcher;
@@ -29,7 +29,6 @@ import javax.sql.DataSource;
 /**
  * The main controller for author-related activities
  *
- * @author jlombardo
  */
 public class AuthorController extends HttpServlet {
 
@@ -50,18 +49,10 @@ public class AuthorController extends HttpServlet {
     private static final String UPDATE_FINAL = "updateFinal";
     private static final String INSERT_FINAL = "insertFinal";
     private static final String CANCEL_ACTION = "cancel";
-
     
-    //Init Parameters
-    private String driverClass;
-    private String url;
-    private String userName;
-    private String password;
-    private String dbStrategyClassName;
-    private String daoClassName;
-    private DbStrategy db;
-    private InterAuthorDAO authorDao;
-    
+    @Inject
+    private AbstractFacade<Author> authService; 
+ 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -91,91 +82,48 @@ public class AuthorController extends HttpServlet {
             session.setAttribute("guestUserFeatures", "");
         }
         
-        
-        
-        String bgColor = request.getParameter("bgColor");
-        
-        if (bgColor != null){
-        ctx.setAttribute("ctxBgColor", bgColor);
-        }
-        
-        /*
-         For now we are hard-coding the strategy objects into this
-         controller. In the future we'll auto inject them from a config
-         file. Also, the DAO opens/closes a connection on each method call,
-         which is not very efficient. In the future we'll learn how to use
-         a connection pool to improve this.
-         */
-//        DbStrategy db = new MySqlDbStrategy();
-        
-//        String className = getServletContext().getInitParameter("dbStrategy");
-//        Class dbClass = Class.forName(className);
-//        DbStrategy db = (DbStrategy)dbClass.newInstance();
-        
-//        try {
-//            String email = this.getServletContext().getInitParameter("email");
-//            Class c = Class.forName(dbClassName);
-//            DbStrategy db = c.newInstance();
-//        } catch (exception e{
-//            
+//        String bgColor = request.getParameter("bgColor");
+//        
+//        if (bgColor != null){
+//        ctx.setAttribute("ctxBgColor", bgColor);
 //        }
         
-//        InterAuthorDAO authDao
-//                = new AuthorDAO(db, "com.mysql.jdbc.Driver",
-//                        "jdbc:mysql://localhost:3306/book", "root", "adminC");
-        
+        Author author = null;
 
         try {
             
-            BookService authService = injectDependenciesAndGetAuthorService();
-            /*
-             Here's what the connection pool version looks like.
-             */
-//            Context ctx = new InitialContext();
-//            DataSource ds = (DataSource)ctx.lookup("jdbc/book");
-//            AuthorDaoStrategy authDao = new ConnPoolAuthorDao(ds, new MySqlDbStrategy());
-//            AuthorService authService = new AuthorService(authDao);
-
-            /*
-             Determine what action to take based on a passed in QueryString
-             Parameter
-             */
             if (action.equals(LIST_ACTION)) {
-                List<Author> authors = null;
-                authors = authService.allAuthors();
-                request.setAttribute("authors", authors);
+                this.refreshList(request, authService);
                 destination = LIST_PAGE;
                 
-//                response.sendRedirect("/about.jsp");
-                
-            } else if (action.equals(ADD_ACTION)) {
-                // coming soon
-            } else if (action.equals(UPDATE_ACTION)) {
+            }  else if (action.equals(DELETE_ACTION)) {
                 String authorID = request.getParameter("Id");
-                Author author = authService.getAuthor(authorID);
-                request.setAttribute("author", author);
-                destination = UPDATE_PAGE; 
-                
-            } else if (action.equals(DELETE_ACTION)) {
-                String authorID = request.getParameter("Id");
-                authService.deleteAuthor(authorID);
+                author = authService.find(new Integer(authorID));
+                authService.remove(author);
                 //Reload page without deleted author
                 this.refreshList(request, authService);
                 destination = LIST_PAGE;
+            } else if (action.equals(UPDATE_ACTION)) {
+                Integer authorId = Integer.parseInt(request.getParameter("Id"));
+                Author authorAlt = authService.find(authorId);
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                java.util.Date date = new java.util.Date();
+                request.setAttribute("date", dateFormat.format(authorAlt.getDateAdded()));
+                request.setAttribute("author", authorAlt);
+                destination = UPDATE_PAGE; 
             } else if (action.equals(UPDATE_FINAL)) {
-                String authorID = request.getParameter("authorID");
+                Integer authorID = Integer.parseInt(request.getParameter("Id"));
                 String authorName = request.getParameter("authorName");
                 String authorAdded = request.getParameter("authorAdded");
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
+                Date parsedDate = formatter.parse(authorAdded);
                 
-                ArrayList<String> descriptions = new ArrayList<>();
-                descriptions.add("author_name");
-                descriptions.add("date_added");
+                author = new Author(authorID);
+                author.setAuthorName(authorName);
+                author.setDateAdded(parsedDate);
                 
-                ArrayList colValues = new ArrayList();
-                colValues.add(authorName);
-                colValues.add(authorAdded);
+                authService.edit(author);
                 
-                authService.updateAuthor("author", descriptions, colValues, "author_id", authorID);
                 this.refreshList(request, authService);
                 destination = LIST_PAGE;
             } else if (action.equals(INSERT_ACTION)) {
@@ -186,21 +134,21 @@ public class AuthorController extends HttpServlet {
           } else if (action.equals(INSERT_FINAL)){
                 String authorName = request.getParameter("authorName");
                 String authorAdded = request.getParameter("authorAdded");
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
+                Date parsedDate = formatter.parse(authorAdded);
                 
-                ArrayList<String> descriptions = new ArrayList<>();
-                descriptions.add("author_name");
-                descriptions.add("date_added");
+                author = new Author(0);
+                author.setAuthorName(authorName);
+                author.setDateAdded(parsedDate);
                 
-                ArrayList colValues = new ArrayList();
-                colValues.add(authorName);
-                colValues.add(authorAdded);
-                
-                authService.insertAuthor("author", descriptions, colValues);
+                authService.create(author);
+//                authService.insertAuthor("author", descriptions, colValues);
                 this.refreshList(request, authService);
                 destination = LIST_PAGE;
-            } else if (action.equals(CANCEL_ACTION)){
-                response.sendRedirect("about.jsp");
-                return;
+                
+//            } else if (action.equals(CANCEL_ACTION)){
+//                response.sendRedirect("about.jsp");
+//                return;
             } else {
                 // no param identified in request, must be an error
                 request.setAttribute("errMsg", NO_PARAM_ERR_MSG + " " + action);
@@ -257,56 +205,49 @@ public class AuthorController extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
-    private void refreshList(HttpServletRequest request, BookService authService) throws Exception {
-        List<Author> authors = authService.allAuthors();
+    private void refreshList(HttpServletRequest request, AbstractFacade<Author> authService) throws Exception {
+        List<Author> authors = authService.findAll();
         request.setAttribute("authors", authors);
     }
     
-    private BookService injectDependenciesAndGetAuthorService() throws Exception {
-        
-        Class dbClass = Class.forName(dbStrategyClassName);
-        DbStrategy db = (DbStrategy) dbClass.newInstance();
-        
-        InterAuthorDAO authorDao = null;
-        Class daoClass = Class.forName(daoClassName);
-        Constructor constructor = null;
-        try {
-            constructor = daoClass.getConstructor(new Class[]{
-            DbStrategy.class, String.class, String.class, String.class, String.class});
-        } catch(NoSuchMethodException e) {
-            // do nothing
-        }
-        
-        if (constructor != null) {
-            Object[] constructorArgs = new Object[]{
-                db, driverClass, url, userName, password };
-            authorDao = (InterAuthorDAO) constructor.newInstance(constructorArgs);
-        
-        } else {
-        
-            Context ctx = new InitialContext();
-            DataSource ds = (DataSource) ctx.lookup("jdbc/book");
-            constructor = daoClass.getConstructor(new Class[]{
-                DataSource.class, DbStrategy.class
-            });
-            Object[] constructorArgs = new Object[]{ds,db};
-
-            authorDao = (InterAuthorDAO) constructor.newInstance(constructorArgs);
-        }
-        
-        return new BookService(authorDao);
-    }
+//    private BookService injectDependenciesAndGetAuthorService() throws Exception {
+//        
+//        Class dbClass = Class.forName(dbStrategyClassName);
+//        DbStrategy db = (DbStrategy) dbClass.newInstance();
+//        
+//        InterAuthorDAO authorDao = null;
+//        Class daoClass = Class.forName(daoClassName);
+//        Constructor constructor = null;
+//        try {
+//            constructor = daoClass.getConstructor(new Class[]{
+//            DbStrategy.class, String.class, String.class, String.class, String.class});
+//        } catch(NoSuchMethodException e) {
+//            // do nothing
+//        }
+//        
+//        if (constructor != null) {
+//            Object[] constructorArgs = new Object[]{
+//                db, driverClass, url, userName, password };
+//            authorDao = (InterAuthorDAO) constructor.newInstance(constructorArgs);
+//        
+//        } else {
+//        
+//            Context ctx = new InitialContext();
+//            DataSource ds = (DataSource) ctx.lookup("jdbc/book");
+//            constructor = daoClass.getConstructor(new Class[]{
+//                DataSource.class, DbStrategy.class
+//            });
+//            Object[] constructorArgs = new Object[]{ds,db};
+//
+//            authorDao = (InterAuthorDAO) constructor.newInstance(constructorArgs);
+//        }
+//        
+//        return new BookService(authorDao);
+//    }
     
     @Override
     public void init() throws ServletException {
         // Get init params from web.xml
-        ServletContext ctx = getServletContext();
-        driverClass = ctx.getInitParameter("driverClass");
-        url = ctx.getInitParameter("url");
-        userName = ctx.getInitParameter("userName");
-        password = ctx.getInitParameter("password");
-        dbStrategyClassName = this.getServletContext().getInitParameter("dbStrategy");
-        daoClassName = this.getServletContext().getInitParameter("authorDao");
 
         // You can't do the Java Reflection stuff here because exceptions
         // are thrown that can't be handled by this stock init() method

@@ -14,12 +14,12 @@
     <body>
         <h1>Update Author</h1>
         
-        <form id="form1" name="form1" Method="POST" action="AuthorController?action=updateFinal&authorID=${author.authorID}">
-                    <p>Author ID: ${author.authorID}</p>
+        <form id="form1" name="form1" Method="POST" action="AuthorController?action=updateFinal&Id=${author.authorId}">
+                    <p>Author ID: ${author.authorId}</p>
                     <p>Author Name:</p>
                     <input type="text" name="authorName" value=${author.authorName} />
                     <p>Date Added:</p>
-                    <input type="text" name="authorAdded" value=${author.dateAdded} />
+                    <input type="text" name="authorAdded" value=${date} />
                     <input class="btn btn-primary" type="submit" name="submit" value="Update" tabindex="8"/>
             <br>
         </form>
