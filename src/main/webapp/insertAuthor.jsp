@@ -20,6 +20,13 @@
                     <input type="text" name="authorName" placeholder="Insert Author Name Here"/>
                     <p>Date Added:</p>
                     <input type="text" name="authorAdded" value=${date} />
+                    
+                    <p>Optional: Add First Book</p>
+                    <input type="text" name="bookTitle" placeholder="Place Book Title Here"/>
+                    <input type="text" name="bookISBN" placeholder="Place Book ISBN Here" />
+                    
+                    <br>
+                    
                     <input class="btn btn-primary" type="submit" name="submit" value="Insert" tabindex="8"/>
             <br>
         </form>

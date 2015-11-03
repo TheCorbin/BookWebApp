@@ -62,7 +62,7 @@
         </c:forEach>
         </table>
         
-        <form id="changeBg" method="POST" action="AuthorController?action=list">
+<!--        <form id="changeBg" method="POST" action="AuthorController?action=list">
                 <h1> Set the background color for EVERYONE using this app.</h1>
                 <input type="radio" name="bgColor" value="red" checked> Red
                 <br>
@@ -72,7 +72,7 @@
                 <br>
                 <input type="radio" name="bgColor" value="pink"> Pink
                 <input class="btn btn-primary" type="submit" name="update" value="Update">
-        </form> 
+        </form> -->
         
         
         <c:if test="${errMsg != null}">

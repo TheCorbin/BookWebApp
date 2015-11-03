@@ -2,7 +2,9 @@ package edu.wctc.rjc.bookwebapp2.controller;
 
 
 import edu.wctc.rjc.bookwebapp2.entity.Author;
-import edu.wctc.rjc.bookwebapp2.service.AbstractFacade;
+import edu.wctc.rjc.bookwebapp2.entity.Book;
+import edu.wctc.rjc.bookwebapp2.service.AuthorService;
+import edu.wctc.rjc.bookwebapp2.service.BookService;
 
 
 import java.io.IOException;
@@ -25,6 +27,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  * The main controller for author-related activities
@@ -50,8 +54,7 @@ public class AuthorController extends HttpServlet {
     private static final String INSERT_FINAL = "insertFinal";
     private static final String CANCEL_ACTION = "cancel";
     
-    @Inject
-    private AbstractFacade<Author> authService; 
+    
  
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -65,22 +68,28 @@ public class AuthorController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        
+        ServletContext sctx = getServletContext();
+        WebApplicationContext ctx
+                = WebApplicationContextUtils.getWebApplicationContext(sctx);
+        AuthorService authService = (AuthorService) ctx.getBean("authorService");
+        BookService bookService = (BookService) ctx.getBean("bookService");
+        
 
         HttpSession session = request.getSession();
-        ServletContext ctx = request.getServletContext();
         
         String destination = LIST_PAGE;
         String action = request.getParameter(ACTION_PARAM);
         
         String user = request.getParameter("userName");
         
-        if ("guest".equals(user)){
-            session.setAttribute("user", "guest");
-            session.setAttribute("guestUserFeatures", "hidden");
-        } else if (user != null){
-            session.setAttribute("user", user);
-            session.setAttribute("guestUserFeatures", "");
-        }
+//        if ("guest".equals(user)){
+//            session.setAttribute("user", "guest");
+//            session.setAttribute("guestUserFeatures", "hidden");
+//        } else if (user != null){
+//            session.setAttribute("user", user);
+//            session.setAttribute("guestUserFeatures", "");
+//        }
         
 //        String bgColor = request.getParameter("bgColor");
 //        
@@ -89,7 +98,8 @@ public class AuthorController extends HttpServlet {
 //        }
         
         Author author = null;
-
+        Book book = null;
+        
         try {
             
             if (action.equals(LIST_ACTION)) {
@@ -97,15 +107,15 @@ public class AuthorController extends HttpServlet {
                 destination = LIST_PAGE;
                 
             }  else if (action.equals(DELETE_ACTION)) {
-                String authorID = request.getParameter("Id");
-                author = authService.find(new Integer(authorID));
+                String authorId = request.getParameter("Id");
+                author = authService.findById(authorId);
                 authService.remove(author);
                 //Reload page without deleted author
                 this.refreshList(request, authService);
                 destination = LIST_PAGE;
             } else if (action.equals(UPDATE_ACTION)) {
-                Integer authorId = Integer.parseInt(request.getParameter("Id"));
-                Author authorAlt = authService.find(authorId);
+                String authorId = request.getParameter("Id");
+                Author authorAlt = authService.findByIdAndFetchBooksEagerly(authorId);
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 java.util.Date date = new java.util.Date();
                 request.setAttribute("date", dateFormat.format(authorAlt.getDateAdded()));
@@ -123,27 +133,36 @@ public class AuthorController extends HttpServlet {
                 author.setDateAdded(parsedDate);
                 
                 authService.edit(author);
-                
                 this.refreshList(request, authService);
                 destination = LIST_PAGE;
             } else if (action.equals(INSERT_ACTION)) {
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 java.util.Date date = new java.util.Date();
                 request.setAttribute("date", dateFormat.format(date));
+                this.refreshBookList(request, bookService);
                 destination = INSERT_PAGE;
           } else if (action.equals(INSERT_FINAL)){
                 String authorName = request.getParameter("authorName");
                 String authorAdded = request.getParameter("authorAdded");
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
                 Date parsedDate = formatter.parse(authorAdded);
-                
-                author = new Author(0);
+                author = new Author();
                 author.setAuthorName(authorName);
                 author.setDateAdded(parsedDate);
+                authService.edit(author);
+                book = new Book();
                 
-                authService.create(author);
-//                authService.insertAuthor("author", descriptions, colValues);
+                
+                String bookTitle = request.getParameter("bookTitle");
+                if (!bookTitle.equals("")){
+                String bookISBN = request.getParameter("bookISBN");
+                book.setAuthorId(author);
+                book.setTitle(bookTitle);
+                book.setIsbn(bookISBN);
+                bookService.edit(book);
+                }
                 this.refreshList(request, authService);
+                this.refreshBookList(request, bookService);
                 destination = LIST_PAGE;
                 
 //            } else if (action.equals(CANCEL_ACTION)){
@@ -205,45 +224,15 @@ public class AuthorController extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
-    private void refreshList(HttpServletRequest request, AbstractFacade<Author> authService) throws Exception {
+    private void refreshList(HttpServletRequest request, AuthorService authService) throws Exception {
         List<Author> authors = authService.findAll();
         request.setAttribute("authors", authors);
     }
     
-//    private BookService injectDependenciesAndGetAuthorService() throws Exception {
-//        
-//        Class dbClass = Class.forName(dbStrategyClassName);
-//        DbStrategy db = (DbStrategy) dbClass.newInstance();
-//        
-//        InterAuthorDAO authorDao = null;
-//        Class daoClass = Class.forName(daoClassName);
-//        Constructor constructor = null;
-//        try {
-//            constructor = daoClass.getConstructor(new Class[]{
-//            DbStrategy.class, String.class, String.class, String.class, String.class});
-//        } catch(NoSuchMethodException e) {
-//            // do nothing
-//        }
-//        
-//        if (constructor != null) {
-//            Object[] constructorArgs = new Object[]{
-//                db, driverClass, url, userName, password };
-//            authorDao = (InterAuthorDAO) constructor.newInstance(constructorArgs);
-//        
-//        } else {
-//        
-//            Context ctx = new InitialContext();
-//            DataSource ds = (DataSource) ctx.lookup("jdbc/book");
-//            constructor = daoClass.getConstructor(new Class[]{
-//                DataSource.class, DbStrategy.class
-//            });
-//            Object[] constructorArgs = new Object[]{ds,db};
-//
-//            authorDao = (InterAuthorDAO) constructor.newInstance(constructorArgs);
-//        }
-//        
-//        return new BookService(authorDao);
-//    }
+    private void refreshBookList(HttpServletRequest request, BookService bookService) throws Exception {
+        List<Book> books = bookService.findAll();
+        request.setAttribute("books", books);
+    }
     
     @Override
     public void init() throws ServletException {

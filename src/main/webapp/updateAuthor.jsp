@@ -5,6 +5,7 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
     <head>
@@ -16,10 +17,30 @@
         
         <form id="form1" name="form1" Method="POST" action="AuthorController?action=updateFinal&Id=${author.authorId}">
                     <p>Author ID: ${author.authorId}</p>
+                    <c:choose>
+                    <c:when test="${not empty author.bookSet}">
+                                <select id="booksDropDown" name="bookId">
+                                    <c:forEach var="book" items="${author.bookSet}" varStatus="rowCount">                                       
+                                        <option value="${book.bookId}">${book.title}</option>
+                                    </c:forEach>
+                                </select>
+                    </c:when>
+                    <c:otherwise>
+                    </c:otherwise>
+                </c:choose>
+                    
+                    
+<!--                    <select id="booksDropDown" name="bookId">
+                                    <c:forEach var="book" items="${author.bookSet}" varStatus="rowCount">                                       
+                                        <option value="${book.bookId}">${book.title}</option>
+                                    </c:forEach>-->
+                    </select>
                     <p>Author Name:</p>
                     <input type="text" name="authorName" value=${author.authorName} />
                     <p>Date Added:</p>
                     <input type="text" name="authorAdded" value=${date} />
+                    
+                    
                     <input class="btn btn-primary" type="submit" name="submit" value="Update" tabindex="8"/>
             <br>
         </form>
