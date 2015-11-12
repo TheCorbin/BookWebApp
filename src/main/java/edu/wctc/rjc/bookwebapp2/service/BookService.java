@@ -46,7 +46,7 @@ public class BookService {
         LOG.debug("Deleting book: " + book.getTitle());
         bookRepo.delete(book);
     }
-
+    
     @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
     public Book edit(Book book) {
         return bookRepo.saveAndFlush(book);

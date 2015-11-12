@@ -41,7 +41,12 @@ public class AuthorService {
 
     public Author findByIdAndFetchBooksEagerly(String id){
         Integer authorId = new Integer(id);
-        return authorRepo.findByIdAndFetchBooksEagerly(authorId);
+        Author authorTemp = authorRepo.findByIdAndFetchBooksEagerly(authorId);
+        if (authorTemp == null){
+            authorTemp = findById(id);
+            authorTemp.setBookSet(null);
+        }
+        return authorTemp;
     }
     
     public Author findById(String id) {

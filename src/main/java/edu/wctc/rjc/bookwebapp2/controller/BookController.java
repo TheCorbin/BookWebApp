@@ -43,6 +43,7 @@ public class BookController extends HttpServlet {
     private static final String DELETE_ACTION = "delete";
     private static final String ACTION_PARAM = "action";
     private static final String CANCEL_ACTION = "cancel";
+    private static final String MAIN_ACTION = "main";
     
     
     
@@ -149,7 +150,13 @@ public class BookController extends HttpServlet {
                 this.refreshBookList(request, bookService);
                 this.refreshAuthorList(request, authService);
                 destination = LIST_PAGE;
-            
+            } else if (action.equals(MAIN_ACTION)){
+                response.sendRedirect("index.html");
+                return;
+            } else if (action.equals(CANCEL_ACTION)){
+                this.refreshAuthorList(request, authService);
+                this.refreshBookList(request, bookService);
+                destination = LIST_PAGE; 
             } else {
                     // no param identified in request, must be an error
                     request.setAttribute("errMsg", NO_PARAM_ERR_MSG + " " + action);

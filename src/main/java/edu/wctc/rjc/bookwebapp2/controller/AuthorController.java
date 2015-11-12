@@ -53,7 +53,7 @@ public class AuthorController extends HttpServlet {
     private static final String UPDATE_FINAL = "updateFinal";
     private static final String INSERT_FINAL = "insertFinal";
     private static final String CANCEL_ACTION = "cancel";
-    
+    private static final String MAIN_ACTION = "main";
     
  
     /**
@@ -141,7 +141,7 @@ public class AuthorController extends HttpServlet {
                 request.setAttribute("date", dateFormat.format(date));
                 this.refreshBookList(request, bookService);
                 destination = INSERT_PAGE;
-          } else if (action.equals(INSERT_FINAL)){
+            } else if (action.equals(INSERT_FINAL)){
                 String authorName = request.getParameter("authorName");
                 String authorAdded = request.getParameter("authorAdded");
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
@@ -151,7 +151,6 @@ public class AuthorController extends HttpServlet {
                 author.setDateAdded(parsedDate);
                 authService.edit(author);
                 book = new Book();
-                
                 
                 String bookTitle = request.getParameter("bookTitle");
                 if (!bookTitle.equals("")){
@@ -164,10 +163,11 @@ public class AuthorController extends HttpServlet {
                 this.refreshList(request, authService);
                 this.refreshBookList(request, bookService);
                 destination = LIST_PAGE;
-                
-//            } else if (action.equals(CANCEL_ACTION)){
-//                response.sendRedirect("about.jsp");
-//                return;
+            } else if (action.equals(MAIN_ACTION)){
+                response.sendRedirect("index.html"); 
+            } else if (action.equals(CANCEL_ACTION)){
+                this.refreshList(request, authService);
+                destination = LIST_PAGE;
             } else {
                 // no param identified in request, must be an error
                 request.setAttribute("errMsg", NO_PARAM_ERR_MSG + " " + action);

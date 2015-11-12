@@ -8,6 +8,7 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <!DOCTYPE html>
 <html>
@@ -48,18 +49,29 @@
             <td align="right">${a.isbn}</td>
             <td aligh="left">${a.authorId.authorName}</td>
             <td>
+                <sec:authorize access="hasAnyRole('ROLE_MGR')">
                 <form id="formDelete" method="POST" action="BookController?action=delete&Id=${a.bookId}">
-                    <input class="btn btn-primary" type="submit" name="delete" value="delete" ${guestUserFeatures}/> 
+                    <input class="btn btn-primary" type="submit" name="delete" value="delete"/> 
                 </form>
+                </sec:authorize>
             </td>
              <td>
                 <form id="formUpdate" method="POST" action="BookController?action=update&Id=${a.bookId}">
-                <input class="btn btn-primary" type="submit" name="update" value="update" ${guestUserFeatures}/> 
+                <input class="btn btn-primary" type="submit" name="update" value="update"/> 
                 </form>
             </td>
         </tr>
         </c:forEach>
         </table>
+        <br>
+        <form id="formInsert" method="POST" action="BookController?action=main">
+            <input class="btn btn-primary" type="submit" name="main" value="main"/> 
+        </form>
+        <br>
+        <sec:authorize access="hasAnyRole('ROLE_MGR','ROLE_USER')">
+            Logged in as: <sec:authentication property="principal.username"></sec:authentication> ::
+            <a href='<%= this.getServletContext().getContextPath() + "/j_spring_security_logout"%>'>Log Me Out</a>
+        </sec:authorize>   
         
         <c:if test="${errMsg != null}">
             <p style="font-weight: bold;color: red;width:500px;">Sorry, data could not be retrieved:<br>
