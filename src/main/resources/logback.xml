@@ -9,11 +9,11 @@
     </appender>
 
     <!-- child level logging for application -->
-    <logger name="edu.wctc.web.demo.bookwebapp" level="DEBUG" />
-    <logger name="org.springframework" level="INFO" />
+    <logger name="edu.wctc.rjc.bookwebapp2" level="DEBUG" />
+    <logger name="org.springframework" level="DEBUG" />
 
     <!-- root level logging (children can override) -->
-    <root level="WARN">
+    <root level="INFO">
         <!-- appender-ref ref="FILE" / -->
         <appender-ref ref="STDOUT" />
     </root>
